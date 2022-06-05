@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { GqlExecutionContext } from '@nestjs/graphql';
 import * as jwt from 'express-jwt';
 import { expressJwtSecret } from 'jwks-rsa';
 import { promisify } from 'node:util';
@@ -20,15 +21,14 @@ export class AuthorizationGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const httpContext = context.switchToHttp();
-    const request = httpContext.getRequest();
-    const response = httpContext.getResponse();
+    const { req: request, res: response } =
+      GqlExecutionContext.create(context).getContext();
 
     const jwtSecret = expressJwtSecret({
       cache: true,
       rateLimit: true,
       jwksRequestsPerMinute: 5,
-      jwksUri: `${this.AUTH0_DOMAIN}/.well-known/jwks.json`,
+      jwksUri: `${this.AUTH0_DOMAIN}.well-known/jwks.json`,
     });
 
     const checkJwt = promisify(
@@ -44,6 +44,7 @@ export class AuthorizationGuard implements CanActivate {
       await checkJwt(request, response);
       return true;
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException(error);
     }
   }
