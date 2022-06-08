@@ -11,11 +11,15 @@ interface CreateProductParams {
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
+  async findAllProducts() {
     return this.prisma.product.findMany();
   }
 
-  async create({ title }: CreateProductParams) {
+  async findProductById(id: string) {
+    return this.prisma.product.findUnique({ where: { id } });
+  }
+
+  async createProduct({ title }: CreateProductParams) {
     const slug = slugify(title, { lower: true });
 
     const productWithSameSlug = await this.prisma.product.findUnique({
