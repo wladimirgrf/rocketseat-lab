@@ -14,4 +14,10 @@ export class StudentsService {
       where: { id },
     });
   }
+
+  findStudentByAuthUserId(authUserId: string) {
+    return this.prisma.student.findUnique({
+      where: { authUserId },
+    });
+  }
 }
